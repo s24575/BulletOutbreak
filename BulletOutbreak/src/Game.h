@@ -4,6 +4,9 @@
 #include "Player.h"
 #include <memory>
 #include <glm/vec2.hpp>
+#include <vector>
+#include "Enemy.h"
+#include "Camera.h"
 
 class Game {
 public:
@@ -25,5 +28,9 @@ private:
 
 	bool m_ShouldQuit = false;
 
+	
 	std::unique_ptr<Player> m_Player;
+	std::vector<std::unique_ptr<Enemy>> m_Enemies;
+
+	std::unique_ptr<Camera> m_Camera;
 };

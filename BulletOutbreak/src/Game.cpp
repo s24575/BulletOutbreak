@@ -21,10 +21,14 @@ bool Game::Init() {
 		return false;
 
 	m_Player = std::make_unique<Player>();
-	if (!m_Player->LoadTexture(m_Renderer, "assets/player.png")) {
-		std::cout << "Failed to initalize player texture\n";
-		return false;
-	}
+	m_Player->LoadTexture(m_Renderer, "assets/player.png");
+
+	std::unique_ptr<Enemy> enemy1 = std::make_unique<Enemy>();
+	enemy1->m_Position = glm::vec2(200, 200);
+	enemy1->LoadTexture(m_Renderer, "assets/enemy.png");
+	m_Enemies.push_back(std::move(enemy1));
+
+	m_Camera = std::make_unique<Camera>(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	return true;
 }
@@ -36,7 +40,6 @@ void Game::Run() {
 		Uint32 currentTime = SDL_GetTicks();
 		float deltaTime = (currentTime - lastTime) / 1000.0f;
 		lastTime = currentTime;
-		std::cout << deltaTime << '\n';
 
 		HandleEvents(event);
 		Update(deltaTime);
@@ -79,6 +82,14 @@ void Game::HandleEvents(SDL_Event& event)
 		case SDL_QUIT:
 			m_ShouldQuit = true;
 			break;
+		case SDL_MOUSEWHEEL:
+			if (event.wheel.y > 0) {
+				m_Camera->SetZoom(m_Camera->GetZoom() * 1.1f);
+			}
+			else if (event.wheel.y < 0) {
+				m_Camera->SetZoom(m_Camera->GetZoom() * 0.9f);
+			}
+			break;
 		}
 	}
 
@@ -95,13 +106,22 @@ void Game::HandleEvents(SDL_Event& event)
 void Game::Update(float deltaTime)
 {
 	m_Player->Update(deltaTime);
+	m_Camera->SetPosition(m_Player->GetPosition());
 }
 
 void Game::Render()
 {
 	SDL_RenderClear(m_Renderer);
 
-	m_Player->Render(m_Renderer);
+	// Render player
+	glm::vec2 playerScreenPos = m_Camera->WorldToScreen(m_Player->GetPosition());
+	m_Player->Draw(m_Renderer, playerScreenPos, m_Camera->GetZoom());
+
+	// Render enemies
+	for (const auto& enemy : m_Enemies) {
+		glm::vec2 enemyScreenPos = m_Camera->WorldToScreen(enemy->m_Position);
+		enemy->Draw(m_Renderer, enemyScreenPos, m_Camera->GetZoom());
+	}
 
 	SDL_RenderPresent(m_Renderer);
 }

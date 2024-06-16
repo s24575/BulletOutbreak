@@ -6,19 +6,16 @@
 #include <memory>
 #include "Camera.h"
 
-class Player {
+class Enemy {
 public:
-	Player();
-	~Player();
+	Enemy();
+	~Enemy();
 
 	void LoadTexture(SDL_Renderer* renderer, const std::string& path);
-	void HandleInput(const glm::vec2& playerMovementDirection);
 	void Update(float deltaTime);
 	void Draw(SDL_Renderer* renderer, const glm::vec2& screenPos, float zoom) const;
 
-	glm::vec2 GetPosition() const;
-
-private:
+public:
 	glm::vec2 m_Velocity;
 	glm::vec2 m_Position;
 	float m_MovementSpeed;
