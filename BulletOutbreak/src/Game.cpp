@@ -1,5 +1,6 @@
 #include "Game.h"
 #include <iostream>
+#include <glm/geometric.hpp>
 
 const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 960;
@@ -20,15 +21,19 @@ bool Game::Init() {
 	if (!InitSDL())
 		return false;
 
-	m_Player = std::make_unique<Player>();
+	m_Player = std::make_shared<Player>(glm::vec2(), glm::vec2(1), 4.0f);
 	m_Player->LoadTexture(m_Renderer, "assets/player.png");
+	m_Entities.push_back(m_Player);
 
-	std::unique_ptr<Enemy> enemy1 = std::make_unique<Enemy>();
-	enemy1->m_Position = glm::vec2(200, 200);
+	std::shared_ptr<Enemy> enemy1 = std::make_shared<Enemy>(glm::vec2(5), glm::vec2(2), 4.0f);
 	enemy1->LoadTexture(m_Renderer, "assets/enemy.png");
-	m_Enemies.push_back(std::move(enemy1));
+	m_Enemies.push_back(enemy1);
+	m_Entities.push_back(enemy1);
 
 	m_Camera = std::make_unique<Camera>(SCREEN_WIDTH, SCREEN_HEIGHT);
+
+	m_Scene = std::make_unique<Scene>(SCREEN_WIDTH, SCREEN_HEIGHT);
+	m_Scene->InitBackground(m_Renderer, "assets/grass.png", 1);
 
 	return true;
 }
@@ -90,6 +95,19 @@ void Game::HandleEvents(SDL_Event& event)
 				m_Camera->SetZoom(m_Camera->GetZoom() * 0.9f);
 			}
 			break;
+		case SDL_MOUSEBUTTONDOWN:
+			if (event.button.button == SDL_BUTTON_LEFT) {
+				int mouseX, mouseY;
+				SDL_GetMouseState(&mouseX, &mouseY);
+
+				glm::vec2 worldPos = m_Camera->ScreenToWorld(glm::vec2(mouseX, mouseY));
+
+				glm::vec2 playerPosition = m_Player->GetPosition() + m_Player->GetSize() / 2.0f;
+				glm::vec2 direction = glm::normalize(worldPos - playerPosition);
+
+				ShootBullet(playerPosition, direction);
+			}
+			break;
 		}
 	}
 
@@ -103,9 +121,22 @@ void Game::HandleEvents(SDL_Event& event)
 	m_Player->HandleInput(playerMovementDirection);
 }
 
+void Game::ShootBullet(glm::vec2 startPos, glm::vec2 direction) {
+	auto bullet = std::make_shared<Bullet>(startPos, glm::vec2(0.2f), direction, 8.0f);
+
+	m_Bullets.push_back(bullet);
+}
+
 void Game::Update(float deltaTime)
 {
+	collisionManager.handleCollisions(m_Entities);
+
 	m_Player->Update(deltaTime);
+
+	for (const auto& bullet : m_Bullets) {
+		bullet->Update(deltaTime);
+	}
+
 	m_Camera->SetPosition(m_Player->GetPosition());
 }
 
@@ -113,14 +144,23 @@ void Game::Render()
 {
 	SDL_RenderClear(m_Renderer);
 
+	// Render scene
+	m_Scene->Draw(m_Renderer, *m_Camera);
+
 	// Render player
 	glm::vec2 playerScreenPos = m_Camera->WorldToScreen(m_Player->GetPosition());
 	m_Player->Draw(m_Renderer, playerScreenPos, m_Camera->GetZoom());
 
 	// Render enemies
 	for (const auto& enemy : m_Enemies) {
-		glm::vec2 enemyScreenPos = m_Camera->WorldToScreen(enemy->m_Position);
+		glm::vec2 enemyScreenPos = m_Camera->WorldToScreen(enemy->GetPosition());
 		enemy->Draw(m_Renderer, enemyScreenPos, m_Camera->GetZoom());
+	}
+
+	// Render bullets
+	for (const auto& bullet : m_Bullets) {
+		glm::vec2 bulletScreenPos = m_Camera->WorldToScreen(bullet->GetPosition());
+		bullet->Draw(m_Renderer, bulletScreenPos, m_Camera->GetZoom());
 	}
 
 	SDL_RenderPresent(m_Renderer);

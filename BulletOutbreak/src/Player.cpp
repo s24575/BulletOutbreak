@@ -2,11 +2,12 @@
 #include <stdio.h>
 #include <glm/geometric.hpp>
 
-Player::Player()
-	: m_Texture(nullptr), m_Position(glm::vec2()), m_Velocity(glm::vec2()), m_MovementSpeed(200), m_Width(50), m_Height(50) {}
+Player::Player(glm::vec2 position, glm::vec2 size, float movementSpeed)
+	: Entity(position, size), m_MovementSpeed(movementSpeed) {}
 
 Player::~Player() {
-	SDL_DestroyTexture(m_Texture);
+	if (m_Texture)
+		SDL_DestroyTexture(m_Texture);
 }
 
 void Player::LoadTexture(SDL_Renderer* renderer, const std::string& path) {
@@ -25,13 +26,8 @@ void Player::Update(float deltaTime) {
 }
 
 void Player::Draw(SDL_Renderer* renderer, const glm::vec2& screenPos, float zoom) const {
-	int renderWidth = static_cast<int>(m_Width * zoom);
-	int renderHeight = static_cast<int>(m_Height * zoom);
+	int renderWidth = static_cast<int>(m_Size.x * zoom);
+	int renderHeight = static_cast<int>(m_Size.y * zoom);
 	SDL_Rect renderQuad = { static_cast<int>(screenPos.x), static_cast<int>(screenPos.y), renderWidth, renderHeight };
 	SDL_RenderCopy(renderer, m_Texture, nullptr, &renderQuad);
-}
-
-glm::vec2 Player::GetPosition() const
-{
-	return m_Position;
 }

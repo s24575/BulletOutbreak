@@ -5,21 +5,19 @@
 #include <glm/vec2.hpp>
 #include <memory>
 #include "Camera.h"
+#include "Entity.h"
 
-class Enemy {
+class Enemy : public Entity {
 public:
-	Enemy();
+	Enemy(glm::vec2 position, glm::vec2 size, float movementSpeed);
 	~Enemy();
 
 	void LoadTexture(SDL_Renderer* renderer, const std::string& path);
 	void Update(float deltaTime);
 	void Draw(SDL_Renderer* renderer, const glm::vec2& screenPos, float zoom) const;
 
-public:
-	glm::vec2 m_Velocity;
-	glm::vec2 m_Position;
+private:
 	float m_MovementSpeed;
-	float m_Width, m_Height;
 
-	SDL_Texture* m_Texture;
+	SDL_Texture* m_Texture = nullptr;
 };

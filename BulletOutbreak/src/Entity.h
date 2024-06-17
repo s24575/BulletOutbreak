@@ -1,0 +1,31 @@
+#pragma once
+
+#include <glm/vec2.hpp>
+#include <memory>
+#include <algorithm>
+#include <SDL_render.h>
+
+class Entity {
+public:
+    Entity(glm::vec2 position, glm::vec2 size);
+
+    virtual void Update(float deltaTime);
+    virtual void Draw(SDL_Renderer* renderer, const glm::vec2& screenPos, float zoom);
+    virtual void HandleCollision(std::shared_ptr<Entity> other);
+    bool IsColliding(std::shared_ptr<Entity> other) const;
+
+    glm::vec2 GetPosition() const;
+    glm::vec2 GetSize() const;
+    glm::vec2 GetVelocity() const;
+    void SetPosition(glm::vec2 pos);
+    void SetSize(glm::vec2 pos);
+    void SetVelocity(glm::vec2 pos);
+
+protected:
+    glm::vec2 m_Position;
+    glm::vec2 m_Size;
+    glm::vec2 m_Velocity;
+
+    glm::vec2 calculateOverlap(std::shared_ptr<Entity> other);
+    void resolveCollision(std::shared_ptr<Entity> other, glm::vec2 overlap);
+};
