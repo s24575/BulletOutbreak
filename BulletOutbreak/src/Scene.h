@@ -13,12 +13,13 @@ public:
     Scene(int screenWidth, int screenHeight);
     ~Scene();
 
-    void InitBackground(SDL_Renderer* renderer, const std::string& tileTextureFile, int tileSize);
+    void InitBackground(SDL_Renderer* renderer, const std::string& grassTileTextureFile, const std::string& wallTileTextureFile, int tileSize);
     void Draw(SDL_Renderer* renderer, const Camera& camera);
 
 private:
     int m_ScreenWidth;
     int m_ScreenHeight;
-    std::vector<std::unique_ptr<Tile>> m_Tiles;
-    SDL_Texture* m_TileTexture = nullptr;
+    std::vector<std::shared_ptr<Tile>> m_Tiles;
+    SDL_Texture* m_GrassTileTexture = nullptr;
+    SDL_Texture* m_WallTileTexture = nullptr;
 };

@@ -15,10 +15,15 @@ public:
 	void LoadTexture(SDL_Renderer* renderer, const std::string& path);
 	void HandleInput(const glm::vec2& playerMovementDirection);
 	void Update(float deltaTime);
-	void Draw(SDL_Renderer* renderer, const glm::vec2& screenPos, float zoom) const;
+	void Draw(SDL_Renderer* renderer, const glm::vec2& screenPos, float zoom) const override;
+
+	void TakeDamage(float damage);
 
 private:
+	glm::vec2 m_MoveForce = glm::vec2();
+	glm::vec2 m_ForceToApply = glm::vec2();
 	float m_MovementSpeed;
+	float m_HealthPoints = 200.0f;
 
 	SDL_Texture* m_Texture = nullptr;
 };

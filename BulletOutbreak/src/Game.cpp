@@ -6,8 +6,10 @@ const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 960;
 
 Game::Game()
+	: m_EntityManager(EntityManager::Instance())
 {
 	m_ShouldQuit = !Init();
+	m_EnemySpawner = std::make_unique<EnemySpawner>(m_Renderer, m_Player);
 }
 
 Game::~Game()
@@ -22,18 +24,21 @@ bool Game::Init() {
 		return false;
 
 	m_Player = std::make_shared<Player>(glm::vec2(), glm::vec2(1), 4.0f);
+	m_EntityManager.AddEntity(m_Player);
 	m_Player->LoadTexture(m_Renderer, "assets/player.png");
-	m_Entities.push_back(m_Player);
+	m_Player->AddTag("player");
+	m_Player->AddTag("collision");
 
-	std::shared_ptr<Enemy> enemy1 = std::make_shared<Enemy>(glm::vec2(5), glm::vec2(2), 4.0f);
-	enemy1->LoadTexture(m_Renderer, "assets/enemy.png");
-	m_Enemies.push_back(enemy1);
-	m_Entities.push_back(enemy1);
+	//std::shared_ptr<Enemy> enemy1 = std::make_shared<Enemy>(glm::vec2(5), glm::vec2(2), 2.0f, 200.0f);
+	//m_EntityManager.AddEntity(enemy1);
+	//enemy1->LoadTexture(m_Renderer, "assets/enemy.png");
+	//enemy1->AddTag("enemy");
+	//enemy1->AddTag("collision");
 
 	m_Camera = std::make_unique<Camera>(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	m_Scene = std::make_unique<Scene>(SCREEN_WIDTH, SCREEN_HEIGHT);
-	m_Scene->InitBackground(m_Renderer, "assets/grass.png", 1);
+	m_Scene->InitBackground(m_Renderer, "assets/grass.png", "assets/wall.png", 1);
 
 	return true;
 }
@@ -73,6 +78,8 @@ bool Game::InitSDL() {
 		return false;
 	}
 
+	SDL_SetRenderDrawColor(m_Renderer, 124, 252, 0, 255);
+
 	std::cout << "Initalized SDL\n";
 
 	return true;
@@ -111,31 +118,31 @@ void Game::HandleEvents(SDL_Event& event)
 		}
 	}
 
-	glm::vec2 playerMovementDirection = glm::vec2(0, 0);
+	glm::vec2 moveDirection = glm::vec2(0, 0);
 
-	if (keys[SDL_SCANCODE_W]) playerMovementDirection.y--;
-	if (keys[SDL_SCANCODE_S]) playerMovementDirection.y++;
-	if (keys[SDL_SCANCODE_D]) playerMovementDirection.x++;
-	if (keys[SDL_SCANCODE_A]) playerMovementDirection.x--;
+	if (keys[SDL_SCANCODE_W]) moveDirection.y--;
+	if (keys[SDL_SCANCODE_S]) moveDirection.y++;
+	if (keys[SDL_SCANCODE_D]) moveDirection.x++;
+	if (keys[SDL_SCANCODE_A]) moveDirection.x--;
 
-	m_Player->HandleInput(playerMovementDirection);
+	m_Player->HandleInput(moveDirection);
 }
 
 void Game::ShootBullet(glm::vec2 startPos, glm::vec2 direction) {
 	auto bullet = std::make_shared<Bullet>(startPos, glm::vec2(0.2f), direction, 8.0f);
-
-	m_Bullets.push_back(bullet);
+	bullet->AddTag("bullet");
+	m_EntityManager.AddEntity(bullet);
 }
 
 void Game::Update(float deltaTime)
 {
-	collisionManager.handleCollisions(m_Entities);
+	m_EnemySpawner->Update(deltaTime);
 
-	m_Player->Update(deltaTime);
+	m_EntityManager.UpdateEntities(deltaTime);
 
-	for (const auto& bullet : m_Bullets) {
-		bullet->Update(deltaTime);
-	}
+	m_CollisionManager.HandleCollisions(m_EntityManager.GetEntities());
+
+	m_EntityManager.RemoveDeletedEntities();
 
 	m_Camera->SetPosition(m_Player->GetPosition());
 }
@@ -144,24 +151,10 @@ void Game::Render()
 {
 	SDL_RenderClear(m_Renderer);
 
-	// Render scene
+	// Render scene (for now it is not an entity)
 	m_Scene->Draw(m_Renderer, *m_Camera);
 
-	// Render player
-	glm::vec2 playerScreenPos = m_Camera->WorldToScreen(m_Player->GetPosition());
-	m_Player->Draw(m_Renderer, playerScreenPos, m_Camera->GetZoom());
-
-	// Render enemies
-	for (const auto& enemy : m_Enemies) {
-		glm::vec2 enemyScreenPos = m_Camera->WorldToScreen(enemy->GetPosition());
-		enemy->Draw(m_Renderer, enemyScreenPos, m_Camera->GetZoom());
-	}
-
-	// Render bullets
-	for (const auto& bullet : m_Bullets) {
-		glm::vec2 bulletScreenPos = m_Camera->WorldToScreen(bullet->GetPosition());
-		bullet->Draw(m_Renderer, bulletScreenPos, m_Camera->GetZoom());
-	}
+	m_EntityManager.DrawEntities(m_Renderer, *m_Camera);
 
 	SDL_RenderPresent(m_Renderer);
 }

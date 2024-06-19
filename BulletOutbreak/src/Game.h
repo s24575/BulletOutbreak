@@ -10,6 +10,8 @@
 #include "Scene.h"
 #include "CollisionManager.h"
 #include "Bullet.h"
+#include "EntityManager.h"
+#include "EnemySpawner.h"
 
 class Game {
 public:
@@ -34,11 +36,10 @@ private:
 	bool m_ShouldQuit = false;
 
 	std::shared_ptr<Player> m_Player = nullptr;
-	std::vector<std::shared_ptr<Enemy>> m_Enemies = {};
-	std::vector<std::shared_ptr<Bullet>> m_Bullets;
-	std::vector<std::shared_ptr<Entity>> m_Entities = {};
 	std::unique_ptr<Scene> m_Scene = nullptr;
 	std::unique_ptr<Camera> m_Camera = nullptr;
 
-	CollisionManager collisionManager;
+	std::unique_ptr<EnemySpawner> m_EnemySpawner = nullptr;
+	CollisionManager m_CollisionManager;
+	EntityManager& m_EntityManager;
 };

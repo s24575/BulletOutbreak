@@ -1,6 +1,8 @@
 #include "Player.h"
 #include <stdio.h>
 #include <glm/geometric.hpp>
+#include "EntityManager.h"
+#include <iostream>
 
 Player::Player(glm::vec2 position, glm::vec2 size, float movementSpeed)
 	: Entity(position, size), m_MovementSpeed(movementSpeed) {}
@@ -14,15 +16,44 @@ void Player::LoadTexture(SDL_Renderer* renderer, const std::string& path) {
 	m_Texture = IMG_LoadTexture(renderer, path.c_str());
 }
 
-void Player::HandleInput(const glm::vec2& playerMovementDirection)
+void Player::HandleInput(const glm::vec2& moveDirection)
 {
-	if (playerMovementDirection.x != 0 || playerMovementDirection.y != 0)
-		m_Velocity += glm::normalize(playerMovementDirection) * m_MovementSpeed;
+	if (glm::length(moveDirection) != 0) {
+		m_MoveForce = glm::normalize(moveDirection) * m_MovementSpeed;
+	}
+	else
+	{
+		m_MoveForce = glm::vec2();
+	}
 }
 
 void Player::Update(float deltaTime) {
-	m_Position += m_Velocity * deltaTime;
-	m_Velocity = glm::vec2();
+	auto enemies = EntityManager::Instance().FindEntitiesWithTag("enemy");
+	for (const auto& enemy : enemies) {
+		auto enemyToPlayerVector = this->GetPosition() - enemy->GetPosition();
+		if (glm::length(enemyToPlayerVector) < 2.5f) {
+			m_ForceToApply += glm::normalize(enemyToPlayerVector) * 10.0f;
+			TakeDamage(10.0f);
+		}
+	}
+
+	m_MoveForce += m_ForceToApply;
+
+	if (glm::length(m_ForceToApply) < 0.01f)
+		m_ForceToApply = glm::vec2(0.0f);
+	else
+		m_ForceToApply /= 1.0f + 1.0f * deltaTime;
+
+
+	m_Velocity = m_MoveForce;
+	m_Position += m_Velocity * deltaTime + 0.5f * m_Acceleration * deltaTime * deltaTime;
+}
+
+void Player::TakeDamage(float damage) {
+	m_HealthPoints -= damage;
+	if (m_HealthPoints <= 0.0f) {
+		std::cout << "You died!\n";
+	}
 }
 
 void Player::Draw(SDL_Renderer* renderer, const glm::vec2& screenPos, float zoom) const {
