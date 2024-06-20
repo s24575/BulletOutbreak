@@ -18,12 +18,13 @@ public:
 	void Draw(SDL_Renderer* renderer, const glm::vec2& screenPos, float zoom) const override;
 
 	void TakeDamage(float damage);
+	bool IsAlive() const;
 
 private:
 	glm::vec2 m_MoveForce = glm::vec2();
 	glm::vec2 m_ForceToApply = glm::vec2();
 	float m_MovementSpeed;
-	float m_HealthPoints = 200.0f;
+	float m_HealthPoints = 100.0f;
 
 	SDL_Texture* m_Texture = nullptr;
 };

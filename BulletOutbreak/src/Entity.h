@@ -18,7 +18,8 @@ public:
     bool IsColliding(std::shared_ptr<Entity> other) const;
 
     void AddTag(const std::string& tag);
-    std::vector<std::string> GetTags();
+    void RemoveTag(const std::string& tag);
+    std::vector<std::string> GetTags() const;
     bool HasTag(const std::string& tag) const;
 
     void MarkForRemoval() { m_ShouldBeRemoved = true; }

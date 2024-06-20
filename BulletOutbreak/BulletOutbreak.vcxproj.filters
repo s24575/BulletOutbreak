@@ -320,15 +320,20 @@
     <ClInclude Include="src\EnemySpawner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="vendor\SDL2-2.30.3\include\SDL_ttf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="vendor\SDL2-2.30.3\lib\x64\SDL2.dll" />
     <None Include="vendor\SDL2-2.30.3\lib\x64\SDL2_image.dll" />
+    <None Include="vendor\SDL2-2.30.3\lib\x64\SDL2_ttf.dll" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="vendor\SDL2-2.30.3\lib\x64\SDL2.lib" />
     <Library Include="vendor\SDL2-2.30.3\lib\x64\SDL2main.lib" />
     <Library Include="vendor\SDL2-2.30.3\lib\x64\SDL2test.lib" />
     <Library Include="vendor\SDL2-2.30.3\lib\x64\SDL2_image.lib" />
+    <Library Include="vendor\SDL2-2.30.3\lib\x64\SDL2_ttf.lib" />
   </ItemGroup>
 </Project>

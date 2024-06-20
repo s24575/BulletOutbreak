@@ -42,8 +42,12 @@ void Entity::AddTag(const std::string& tag) {
 	m_Tags.push_back(tag);
 }
 
-std::vector<std::string> Entity::GetTags()
-{
+void Entity::RemoveTag(const std::string& tag) {
+	auto itr = std::find(m_Tags.begin(), m_Tags.end(), tag);
+	if (itr != m_Tags.end()) m_Tags.erase(itr);
+}
+
+std::vector<std::string> Entity::GetTags() const {
 	return m_Tags;
 }
 

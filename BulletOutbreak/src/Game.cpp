@@ -1,6 +1,7 @@
 #include "Game.h"
 #include <iostream>
 #include <glm/geometric.hpp>
+#include <SDL_ttf.h>
 
 const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 960;
@@ -78,6 +79,8 @@ bool Game::InitSDL() {
 		return false;
 	}
 
+	TTF_Init();
+
 	SDL_SetRenderDrawColor(m_Renderer, 124, 252, 0, 255);
 
 	std::cout << "Initalized SDL\n";
@@ -107,12 +110,7 @@ void Game::HandleEvents(SDL_Event& event)
 				int mouseX, mouseY;
 				SDL_GetMouseState(&mouseX, &mouseY);
 
-				glm::vec2 worldPos = m_Camera->ScreenToWorld(glm::vec2(mouseX, mouseY));
-
-				glm::vec2 playerPosition = m_Player->GetPosition() + m_Player->GetSize() / 2.0f;
-				glm::vec2 direction = glm::normalize(worldPos - playerPosition);
-
-				ShootBullet(playerPosition, direction);
+				ShootBullet(glm::vec2(mouseX, mouseY));
 			}
 			break;
 		}
@@ -126,12 +124,6 @@ void Game::HandleEvents(SDL_Event& event)
 	if (keys[SDL_SCANCODE_A]) moveDirection.x--;
 
 	m_Player->HandleInput(moveDirection);
-}
-
-void Game::ShootBullet(glm::vec2 startPos, glm::vec2 direction) {
-	auto bullet = std::make_shared<Bullet>(startPos, glm::vec2(0.2f), direction, 8.0f);
-	bullet->AddTag("bullet");
-	m_EntityManager.AddEntity(bullet);
 }
 
 void Game::Update(float deltaTime)
@@ -156,5 +148,38 @@ void Game::Render()
 
 	m_EntityManager.DrawEntities(m_Renderer, *m_Camera);
 
+	if (!m_Player->IsAlive())
+		ShowDeathMessage();
+
 	SDL_RenderPresent(m_Renderer);
+}
+
+void Game::ShootBullet(glm::vec2 mousePosition) {
+	if (!m_Player->IsAlive())
+		return;
+
+	glm::vec2 worldPos = m_Camera->ScreenToWorld(mousePosition);
+
+	glm::vec2 playerPosition = m_Player->GetPosition() + m_Player->GetSize() / 2.0f;
+	glm::vec2 direction = glm::normalize(worldPos - playerPosition);
+
+	auto bullet = std::make_shared<Bullet>(playerPosition, glm::vec2(0.2f), direction, 8.0f);
+	bullet->AddTag("bullet");
+	m_EntityManager.AddEntity(bullet);
+}
+
+void Game::ShowDeathMessage()
+{
+	TTF_Font* sans = TTF_OpenFont("assets/OpenSans-Bold.ttf", 24);
+
+	SDL_Surface* surfaceMessage = TTF_RenderText_Solid(sans, "You died!", { 255, 255, 255 });
+
+	SDL_Texture* message = SDL_CreateTextureFromSurface(m_Renderer, surfaceMessage);
+
+	SDL_Rect message_rect{0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
+
+	SDL_RenderCopy(m_Renderer, message, NULL, &message_rect);
+
+	SDL_FreeSurface(surfaceMessage);
+	SDL_DestroyTexture(message);
 }

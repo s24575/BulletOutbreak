@@ -27,7 +27,8 @@ private:
 	void Update(float deltaTime);
 	void Render();
 
-	void ShootBullet(glm::vec2 startPos, glm::vec2 direction);
+	void ShootBullet(glm::vec2 mousePosition);
+	void ShowDeathMessage();
 
 private:
 	SDL_Window* m_Window = nullptr;

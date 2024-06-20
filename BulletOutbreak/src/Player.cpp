@@ -28,6 +28,11 @@ void Player::HandleInput(const glm::vec2& moveDirection)
 }
 
 void Player::Update(float deltaTime) {
+	if (!IsAlive()) {
+		RemoveTag("collision");
+		return;
+	}
+
 	auto enemies = EntityManager::Instance().FindEntitiesWithTag("enemy");
 	for (const auto& enemy : enemies) {
 		auto enemyToPlayerVector = this->GetPosition() - enemy->GetPosition();
@@ -51,9 +56,11 @@ void Player::Update(float deltaTime) {
 
 void Player::TakeDamage(float damage) {
 	m_HealthPoints -= damage;
-	if (m_HealthPoints <= 0.0f) {
-		std::cout << "You died!\n";
-	}
+}
+
+bool Player::IsAlive() const
+{
+	return m_HealthPoints > 0.0f;
 }
 
 void Player::Draw(SDL_Renderer* renderer, const glm::vec2& screenPos, float zoom) const {
